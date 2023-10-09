@@ -1,54 +1,62 @@
 <template>
-    <!-- <div v-if="hasAnyRole('pemilik|admin', userData)"> -->
-    <section>
-        <h1 class="mt-5">Daftar User</h1>
-        <router-link :to="{ name: 'Register' }" class="btn btn-primary">
-            Tambah Pengguna
-        </router-link>
-        <UserComponent />
-    </section>
-    <!-- </div> -->
-    <!-- <forbidden v-else /> -->
+    <div>
+        <h1>Laporan Data Barang</h1>
+    </div>
+    <div>
+        <BarangComponent />
+    </div>
+    <a
+        href=""
+        class="btn btn-primary"
+        @click.prevent="$router.push({ name: 'Report' })"
+        >Kembali</a
+    >
 </template>
 
 <script>
 import { inject } from "vue";
+import { useRouter } from "vue-router";
 import Forbidden from "../errors/Forbidden.vue";
-import UserComponent from "../../components/user/UserComponent.vue";
+import BarangComponent from "../../components/barang/BarangComponent.vue";
 
 export default {
     components: {
+        BarangComponent,
         Forbidden,
-        UserComponent,
     },
     setup() {
         const { getUser } = inject("getUser");
+        const router = useRouter();
         const userData = getUser();
 
+        const createData = () => {
+            router.push({
+                name: "BarangCreate",
+            });
+        };
+
         const is = (role, userData) => {
-            if (userData) {
+            if (userData && userData.data.roles) {
                 return userData.data.roles.includes(role);
             }
             return false;
         };
 
         const hasAnyRole = (roles, userData) => {
-            if (userData) {
-                const userRoles = userData.data.roles;
+            if (userData && userData.roles) {
+                const userRoles = userData.roles;
                 return roles
                     .split("|")
                     .some((role) => userRoles.includes(role));
             }
             return false;
         };
-
         return {
             userData,
             is,
             hasAnyRole,
+            createData,
         };
     },
 };
 </script>
-
-<style scoped></style>

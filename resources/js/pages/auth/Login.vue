@@ -16,6 +16,9 @@
                         id="username"
                         v-model="form.username"
                     />
+                    <div class="error" v-if="form.error.username">
+                        {{ form.error.username[0] }}
+                    </div>
                 </div>
                 <div class="mb-3">
                     <label for="pasword" class="form-label">Password</label>
@@ -26,6 +29,9 @@
                         class="form-control"
                         id="pasword"
                     />
+                    <div class="error" v-if="form.error.password">
+                        {{ form.error.password[0] }}
+                    </div>
                 </div>
 
                 <button
@@ -49,23 +55,28 @@ import { useNotification } from "@kyvg/vue3-notification";
 export default {
     setup() {
         const router = useRouter();
-        const form = reactive({ username: "", password: "" });
+        const form = reactive({ username: "", password: "", error: {} });
         const { cookies } = useCookies();
         const { notify } = useNotification();
 
         const login = () => {
-            axios.post("/api/login", form).then((res) => {
-                cookies.set("api_token", res.data.api_token, {
-                    expires: "1D",
-                });
+            axios
+                .post("/api/login", form)
+                .then((res) => {
+                    cookies.set("api_token", res.data.api_token, {
+                        expires: "1D",
+                    });
 
-                router.push({ name: "Home" });
-                notify({
-                    title: "Success",
-                    text: res.data.message,
-                    type: "success",
+                    router.push({ name: "Home" });
+                    notify({
+                        title: "Success",
+                        text: res.data.message,
+                        type: "success",
+                    });
+                })
+                .catch((error) => {
+                    form.error = error.response.data.errors;
                 });
-            });
         };
 
         return { cookies, login, form };
@@ -93,5 +104,10 @@ export default {
 .card .header {
     padding-bottom: 1rem;
     border-bottom: 1px solid #ccc;
+}
+
+.error {
+    color: red;
+    font-size: 12px;
 }
 </style>

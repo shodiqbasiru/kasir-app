@@ -41,7 +41,7 @@ class AuthController extends Controller
             ]);
         }
         throw ValidationException::withMessages([
-            'username' => ['The provided credentials are incorrect.'],
+            'username' => ['Username atau password salah'],
         ]);
     }
 

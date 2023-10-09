@@ -6,9 +6,4 @@
 
 <script></script>
 
-<style>
-footer {
-    display: grid;
-    place-items: center;
-}
-</style>
+<style></style>

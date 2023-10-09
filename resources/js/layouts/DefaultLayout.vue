@@ -4,7 +4,7 @@
             <SideBar />
         </div>
         <div class="main">
-            <router-view></router-view>
+            <router-view />
             <Footer />
         </div>
     </section>
@@ -62,10 +62,7 @@ export default {
 
 <style scoped>
 .wrapper {
-    position: relative;
     width: 100%;
-    height: 100vh;
-    display: flex;
 }
 .wrapper .nav-bar {
     width: 15%;
@@ -73,13 +70,22 @@ export default {
     top: 0;
     left: 0;
     bottom: 0;
-
     background-color: rgb(101, 223, 223);
 }
 
 .wrapper .main {
-    width: 85%;
+    position: relative;
     margin-left: 15%;
     padding: 1rem;
+    min-height: 100vh;
+}
+
+footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: grid;
+    place-items: center;
 }
 </style>

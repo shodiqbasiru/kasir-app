@@ -24,6 +24,9 @@ import EditKategori from "./pages/category/EditData.vue";
 import Kasir from "./pages/Kasir.vue";
 import Report from "./pages/report/Report.vue";
 import ReportDetail from "./pages/report/ReportDetail.vue";
+import ReportUser from "./pages/report/LaporanUser.vue";
+import ReportTransaksi from "./pages/report/LaporanTransaksi.vue";
+import ReportBarang from "./pages/report/LaporanBarang.vue";
 
 // Authentication
 import Login from "./pages/auth/Login.vue";
@@ -100,15 +103,31 @@ const routes = [
 
             // report
             {
-                path: "/transcation",
+                path: "/report",
                 name: "Report",
                 component: Report,
             },
+            {
+                path: "/report/laporan-transcation",
+                name: "ReportTransaksi",
+                component: ReportTransaksi,
+            },
+
             {
                 path: "/transaction/:id?",
                 name: "ReportDetail",
                 component: ReportDetail,
                 props: true,
+            },
+            {
+                path: "/report/laporan-barang",
+                name: "ReportBarang",
+                component: ReportBarang,
+            },
+            {
+                path: "/report/laporan-user",
+                name: "ReportUser",
+                component: ReportUser,
             },
             //end report
 

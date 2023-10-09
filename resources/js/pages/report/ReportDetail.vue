@@ -56,12 +56,12 @@
                         </h5>
                     </li>
                 </ol>
-                <a
+                <!-- <a
                     href="#"
                     class="btn btn-primary m-3"
                     @click.prevent="backToReport"
                     >Kembali</a
-                >
+                > -->
             </div>
         </div>
     </section>
@@ -86,9 +86,9 @@ export default {
                 console.log(Response.data.data);
             });
         },
-        backToReport() {
-            this.$router.push({ name: "Report" });
-        },
+        // backToReport() {
+        //     this.$router.push({ name: "Report" });
+        // },
         formatRupiah(angka) {
             if (typeof angka !== "undefined") {
                 var number_string = angka.toString(),

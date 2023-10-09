@@ -1,14 +1,14 @@
 <template>
-    <!-- <div v-if="hasAnyRole('pemilik|admin', userData)"> -->
-    <section>
-        <h1 class="mt-5">Daftar User</h1>
-        <router-link :to="{ name: 'Register' }" class="btn btn-primary">
-            Tambah Pengguna
-        </router-link>
+    <h1>Laporan Data Pengguna</h1>
+    <div>
         <UserComponent />
-    </section>
-    <!-- </div> -->
-    <!-- <forbidden v-else /> -->
+    </div>
+    <a
+        href=""
+        class="btn btn-primary"
+        @click.prevent="$router.push({ name: 'Report' })"
+        >Kembali</a
+    >
 </template>
 
 <script>
@@ -50,5 +50,3 @@ export default {
     },
 };
 </script>
-
-<style scoped></style>
