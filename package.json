@@ -6,19 +6,27 @@
     },
     "devDependencies": {
         "@popperjs/core": "^2.11.6",
-        "@vitejs/plugin-vue": "^4.0.0",
         "axios": "^1.1.2",
-        "bootstrap": "^5.2.3",
-        "laravel-vite-plugin": "^0.7.2",
+        "bootstrap": "^5.3.2",
+        "laravel-vite-plugin": "^0.5.0",
         "lodash": "^4.17.19",
         "postcss": "^8.1.14",
         "sass": "^1.56.1",
-        "vite": "^4.0.0",
-        "vue": "^3.3.4"
+        "vite": "^3.0.0",
+        "vue": "^3.3.4",
+        "vue-template-compiler": "^2.6.12"
     },
     "dependencies": {
-        "router": "^1.3.8",
-        "vue-loader": "^17.2.2",
-        "vue-router": "^4.2.5"
+        "@fortawesome/fontawesome-svg-core": "^6.4.2",
+        "@fortawesome/free-brands-svg-icons": "^6.4.2",
+        "@fortawesome/free-regular-svg-icons": "^6.4.2",
+        "@fortawesome/free-solid-svg-icons": "^6.4.2",
+        "@fortawesome/vue-fontawesome": "^3.0.3",
+        "@kyvg/vue3-notification": "^3.0.2",
+        "@vitejs/plugin-vue": "^3.0.1",
+        "laravel-permission-to-vuejs": "^3.0.1",
+        "vue-loader": "^17.0.0",
+        "vue-router": "^4.1.3",
+        "vue3-cookies": "^1.0.6"
     }
 }

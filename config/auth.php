@@ -95,6 +95,15 @@ return [
         ],
     ],
 
+
+    'role' => [
+        'table' => 'roles',
+        'model' => Spatie\Permission\Models\Role::class,
+    ],
+    'permission' => [
+        'table' => 'permissions',
+        'model' => Spatie\Permission\Models\Permission::class,
+    ],
     /*
     |--------------------------------------------------------------------------
     | Password Confirmation Timeout

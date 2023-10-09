@@ -1,14 +1,10 @@
 <template>
-    <Header />
-    <hr />
-    <p>Haloo</p>
+    <notifications position="Top right" />
 
     <router-view />
-    <Footer />
 </template>
 
-<script setup>
-import Header from "./components/Header.vue";
-import Footer from "./components/Footer.vue";
+<script>
+export default {};
 </script>
-<style></style>
+<style scoped></style>

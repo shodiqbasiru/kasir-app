@@ -11,9 +11,18 @@
 </head>
 
 <body>
-    <div id="app">
-        {{-- <app></app> --}}
+    <div class="container-fluid p-0 m-0" id="app">
+        <app></app>
     </div>
+
+
+    <script type="text/javascript">
+        window.vueSpatiePermissions = {!! auth()->check()
+            ? auth()->user()->getRolesPermissionsAsJson()
+            : '[]' !!};
+    </script>
+
 </body>
+
 
 </html>
