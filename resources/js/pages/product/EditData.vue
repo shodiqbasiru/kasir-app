@@ -1,5 +1,5 @@
 <template>
-    <div v-if="is('admin', userData)">
+    <div v-if="is('admin')">
         <h1>Edit Data</h1>
         <form @submit.prevent="handleUpdate()" action="/barang">
             <div class="form-group">
@@ -9,11 +9,10 @@
                     name="id_barang"
                     id="id_barang"
                     class="form-control"
-                    v-model="form.kode_barang"
-                    disabled
+                    v-model="data.form.kode_barang"
                 />
-                <div class="error" v-if="errors.kode_barang">
-                    {{ errors.kode_barang[0] }}
+                <div class="error" v-if="data.error.kode_barang">
+                    {{ data.error.kode_barang[0] }}
                 </div>
             </div>
             <div class="form-group">
@@ -23,10 +22,10 @@
                     name="nama_barang"
                     id="nama_barang"
                     class="form-control"
-                    v-model="form.nama_barang"
+                    v-model="data.form.nama_barang"
                 />
-                <div class="error" v-if="errors.nama_barang">
-                    {{ errors.nama_barang[0] }}
+                <div class="error" v-if="data.error.nama_barang">
+                    {{ data.error.nama_barang[0] }}
                 </div>
             </div>
             <div class="form-group">
@@ -36,10 +35,10 @@
                     name="harga_barang"
                     id="harga_barang"
                     class="form-control"
-                    v-model="form.harga_barang"
+                    v-model="data.form.harga_barang"
                 />
-                <div class="error" v-if="errors.harga_barang">
-                    {{ errors.harga_barang[0] }}
+                <div class="error" v-if="data.error.harga_barang">
+                    {{ data.error.harga_barang[0] }}
                 </div>
             </div>
             <div class="form-group">
@@ -49,10 +48,10 @@
                     name="stok_barang"
                     id="stok_barang"
                     class="form-control"
-                    v-model="form.stok_barang"
+                    v-model="data.form.stok_barang"
                 />
-                <div class="error" v-if="errors.stok_barang">
-                    {{ errors.stok_barang[0] }}
+                <div class="error" v-if="data.error.stok_barang">
+                    {{ data.error.stok_barang[0] }}
                 </div>
             </div>
 
@@ -63,7 +62,7 @@
                     name="category_id"
                     id="category_id"
                     class="form-control"
-                    v-model="form.category_id"
+                    v-model="data.form.category_id"
                 >
                     <option value="">-- Pilih Kategori --</option>
                     <option
@@ -74,8 +73,8 @@
                         {{ category.nama_kategori }}
                     </option>
                 </select>
-                <div class="error" v-if="errors.nama_kategori">
-                    {{ errors.nama_kategori[0] }}
+                <div class="error" v-if="data.error.nama_kategori">
+                    {{ data.error.nama_kategori[0] }}
                 </div>
             </div>
             <!-- end  -->
@@ -88,13 +87,13 @@
                     cols="30"
                     rows="10"
                     class="form-control"
-                    v-model="form.deskripsi_barang"
+                    v-model="data.form.deskripsi_barang"
                 ></textarea>
-                <div class="error" v-if="errors.deskripsi_barang">
-                    {{ errors.deskripsi_barang[0] }}
+                <div class="error" v-if="data.error.deskripsi_barang">
+                    {{ data.error.deskripsi_barang[0] }}
                 </div>
             </div>
-            <button type="submit" class="btn btn-primary">Update</button>
+            <button type="submit" class="btn btn-primary">Tambah</button>
         </form>
     </div>
     <div v-else>
@@ -103,10 +102,11 @@
 </template>
 
 <script>
-import { ref, reactive, onMounted, inject } from "vue";
 import axios from "axios";
+import { ref, reactive, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useNotification } from "@kyvg/vue3-notification";
+import { useCookies } from "vue3-cookies";
 import Forbidden from "../errors/Forbidden.vue";
 
 export default {
@@ -115,24 +115,32 @@ export default {
         Forbidden,
     },
     setup(props) {
-        const form = reactive({
-            kode_barang: "",
-            nama_barang: "",
-            harga_barang: "",
-            stok_barang: "",
-            category_id: "",
-            deskripsi_barang: "",
-        });
-
-        const { getUser } = inject("getUser");
-        const categories = ref([]);
-        const errors = ref({});
-        const router = useRouter();
         const { notify } = useNotification();
+        const router = useRouter();
+        const { cookies } = useCookies();
+        const role = ref([]);
+        const data = reactive({
+            form: {
+                kode_barang: "",
+                nama_barang: "",
+                harga_barang: "",
+                stok_barang: "",
+                category_id: "",
+                deskripsi_barang: "",
+            },
+            error: {},
+        });
+        const categories = ref([]);
 
+        const getCategories = () => {
+            axios.get("/api/kategori").then((response) => {
+                categories.value = response.data.data;
+                // console.log(categories.value);
+            });
+        };
         const handleUpdate = () => {
             axios
-                .put(`/api/barang/${props.id}`, form)
+                .put(`/api/barang/${props.id}`, data.form)
                 .then((response) => {
                     if (response.data.status) {
                         console.log(response);
@@ -147,64 +155,46 @@ export default {
                 })
                 .catch((error) => {
                     if (error.response.status == 422) {
-                        errors.value = error.response.data.errors;
+                        error.value = error.response.data.errors;
                     }
                 });
         };
 
-        const getCategories = () => {
-            axios.get("/api/kategori").then((response) => {
-                categories.value = response.data.data;
-                console.log(categories.value);
-            });
+        const is = (roles) => {
+            if (role.value === roles) {
+                return true;
+            } else {
+                return false;
+            }
         };
+
+        onMounted(() => {
+            role.value = cookies.get("roles");
+            getCategories();
+        });
 
         const getItem = () => {
             axios.get(`/api/barang/${props.id}`).then((response) => {
-                form.kode_barang = response.data.kode_barang;
-                form.nama_barang = response.data.nama_barang;
-                form.harga_barang = response.data.harga_barang;
-                form.stok_barang = response.data.stok_barang;
-                form.category_id = response.data.category_id;
-                form.deskripsi_barang = response.data.deskripsi_barang;
-                console.log(response.data);
+                data.form.kode_barang = response.data.kode_barang;
+                data.form.nama_barang = response.data.nama_barang;
+                data.form.harga_barang = response.data.harga_barang;
+                data.form.stok_barang = response.data.stok_barang;
+                data.form.category_id = response.data.category_id;
+                data.form.deskripsi_barang = response.data.deskripsi_barang;
             });
-        };
-
-        const userData = getUser();
-        console.log(userData.data.roles);
-
-        const is = (role, userData) => {
-            if (userData && userData.data && userData.data.roles) {
-                return userData.data.roles.includes(role);
-            }
-            return false;
-        };
-
-        const hasAnyRole = (roles, userData) => {
-            if (userData && userData.roles) {
-                const userRoles = userData.roles;
-                return roles
-                    .split("|")
-                    .some((role) => userRoles.includes(role));
-            }
-            return false;
         };
 
         onMounted(() => {
             getItem();
             getCategories();
-            console.log(userData.data.roles);
+            role.value = cookies.get("roles");
         });
 
         return {
-            form,
+            data,
             categories,
-            errors,
             handleUpdate,
-            userData,
             is,
-            hasAnyRole,
         };
     },
 };

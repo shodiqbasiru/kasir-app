@@ -1,29 +1,30 @@
 <template>
-    <!-- <div v-if="is('admin', userData)"> -->
-    <h1 class="title mt-5">Data Barang</h1>
+    <div v-if="is('admin')">
+        <h1 class="title mt-5">Data Barang</h1>
 
-    <div class="content">
-        <div class="header">
-            <h5>List Barang</h5>
-            <a href="" class="btn btn-primary" @click.prevent="createData()"
-                >Tambah Data</a
-            >
-        </div>
-        <div class="body">
-            <BarangComponent />
+        <div class="content">
+            <div class="header">
+                <h5>List Barang</h5>
+                <a href="" class="btn btn-primary" @click.prevent="createData()"
+                    >Tambah Data</a
+                >
+            </div>
+            <div class="body">
+                <BarangComponent />
+            </div>
         </div>
     </div>
-    <!-- </div> -->
-    <!-- <div v-else>
+    <div v-else>
         <Forbidden />
-    </div> -->
+    </div>
 </template>
 
 <script>
-import { inject } from "vue";
+import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import Forbidden from "../errors/Forbidden.vue";
 import BarangComponent from "../../components/barang/BarangComponent.vue";
+import { useCookies } from "vue3-cookies";
 
 export default {
     components: {
@@ -31,9 +32,9 @@ export default {
         Forbidden,
     },
     setup() {
-        const { getUser } = inject("getUser");
         const router = useRouter();
-        const userData = getUser();
+        const role = ref([]);
+        const { cookies } = useCookies();
 
         const createData = () => {
             router.push({
@@ -41,26 +42,19 @@ export default {
             });
         };
 
-        const is = (role, userData) => {
-            if (userData && userData.data.roles) {
-                return userData.data.roles.includes(role);
+        const is = (roles) => {
+            if (role.value === roles) {
+                return true;
+            } else {
+                return false;
             }
-            return false;
         };
 
-        const hasAnyRole = (roles, userData) => {
-            if (userData && userData.roles) {
-                const userRoles = userData.roles;
-                return roles
-                    .split("|")
-                    .some((role) => userRoles.includes(role));
-            }
-            return false;
-        };
+        onMounted(() => {
+            role.value = cookies.get("roles");
+        });
         return {
-            userData,
             is,
-            hasAnyRole,
             createData,
         };
     },

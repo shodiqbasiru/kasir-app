@@ -1,64 +1,78 @@
 <template>
-    <section>
-        <div class="card">
-            <div class="header text-center mb-5">
-                <h1>{{ title }}</h1>
-            </div>
-            <form action="/user" @submit.prevent="handleSubmit">
-                <div class="mb-3">
-                    <label for="name" class="form-label">Nama Pengguna</label>
-                    <input
-                        type="text"
-                        name="name"
-                        class="form-control"
-                        id="name"
-                        v-model="form.name"
-                    />
+    <div v-if="hasAnyRole('pemilik|admin')">
+        <section>
+            <div class="card">
+                <div class="header text-center mb-5">
+                    <h1>{{ title }}</h1>
                 </div>
-                <div class="mb-3">
-                    <label for="username" class="form-label">Username</label>
-                    <input
-                        type="text"
-                        name="username"
-                        class="form-control"
-                        id="username"
-                        v-model="form.username"
-                    />
-                </div>
-                <div class="mb-3">
-                    <label for="roles" class="form-label">Role</label>
-                    <select
-                        name="roles"
-                        id="roles"
-                        class="form-control"
-                        v-model="form.selectedRole"
-                    >
-                        <option value="">Pilih Role</option>
-                        <option
-                            v-for="role in role.roles"
-                            :key="role.id"
-                            :value="role.id"
+                <form action="/user" @submit.prevent="handleSubmit">
+                    <div class="mb-3">
+                        <label for="name" class="form-label"
+                            >Nama Pengguna</label
                         >
-                            {{ role.name }}
-                        </option>
-                    </select>
-                </div>
+                        <input
+                            type="text"
+                            name="name"
+                            class="form-control"
+                            id="name"
+                            v-model="form.name"
+                        />
+                    </div>
+                    <div class="mb-3">
+                        <label for="username" class="form-label"
+                            >Username</label
+                        >
+                        <input
+                            type="text"
+                            name="username"
+                            class="form-control"
+                            id="username"
+                            v-model="form.username"
+                        />
+                    </div>
+                    <div class="mb-3">
+                        <label for="roles" class="form-label">Role</label>
+                        <select
+                            name="roles"
+                            id="roles"
+                            class="form-control"
+                            v-model="form.selectedRole"
+                        >
+                            <option value="">Pilih Role</option>
+                            <option
+                                v-for="role in role.roles"
+                                :key="role.id"
+                                :value="role.id"
+                            >
+                                {{ role.name }}
+                            </option>
+                        </select>
+                    </div>
 
-                <button type="submit" class="btn btn-primary">Update</button>
-            </form>
-        </div>
-    </section>
+                    <button type="submit" class="btn btn-primary">
+                        Update
+                    </button>
+                </form>
+            </div>
+        </section>
+    </div>
+    <forbidden v-else />
 </template>
 
 <script>
 import axios from "axios";
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useNotification } from "@kyvg/vue3-notification";
+import { useCookies } from "vue3-cookies";
+
+import Forbidden from "./errors/Forbidden.vue";
 
 export default {
     props: ["id"],
-
+    components: {
+        Forbidden,
+    },
     setup(props) {
         const title = ref("Edit Pengguna");
         const form = ref({
@@ -70,6 +84,7 @@ export default {
         const { notify } = useNotification();
         const errors = ref({});
         const router = useRouter();
+        const { cookies } = useCookies();
 
         const handleSubmit = () => {
             axios.put("/api/users/" + props.id, form.value).then((response) => {
@@ -99,20 +114,37 @@ export default {
             });
         };
 
+        const roleName = ref([]);
+
+        const hasAnyRole = (roles) => {
+            const rolesSplit = roles.split("|");
+            roleName.value = cookies.value;
+
+            if (roleName.value) {
+                return rolesSplit.some((roleSplit) =>
+                    roleName.value.includes(roleSplit)
+                );
+            }
+
+            return false;
+        };
+
+        onMounted(() => {
+            getDataRoles();
+            getUser();
+            cookies.value = cookies.get("roles");
+        });
+
         return {
             title,
             form,
             errors,
             getDataRoles,
             getUser,
+            hasAnyRole,
             handleSubmit,
             role,
         };
-    },
-
-    mounted() {
-        this.getDataRoles();
-        this.getUser();
     },
 };
 </script>

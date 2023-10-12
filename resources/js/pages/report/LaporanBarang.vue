@@ -14,10 +14,10 @@
 </template>
 
 <script>
-import { inject } from "vue";
-import { useRouter } from "vue-router";
 import Forbidden from "../errors/Forbidden.vue";
 import BarangComponent from "../../components/barang/BarangComponent.vue";
+import { useCookies } from "vue3-cookies";
+import { ref, onMounted } from "vue";
 
 export default {
     components: {
@@ -25,37 +25,28 @@ export default {
         Forbidden,
     },
     setup() {
-        const { getUser } = inject("getUser");
-        const router = useRouter();
-        const userData = getUser();
+        const { cookies } = useCookies();
+        const role = ref([]);
 
-        const createData = () => {
-            router.push({
-                name: "BarangCreate",
-            });
-        };
+        const hasAnyRole = (roles) => {
+            const rolesSplit = roles.split("|");
+            role.value = cookies.value;
 
-        const is = (role, userData) => {
-            if (userData && userData.data.roles) {
-                return userData.data.roles.includes(role);
+            if (role.value) {
+                return rolesSplit.some((roleSplit) =>
+                    role.value.includes(roleSplit)
+                );
             }
+
             return false;
         };
 
-        const hasAnyRole = (roles, userData) => {
-            if (userData && userData.roles) {
-                const userRoles = userData.roles;
-                return roles
-                    .split("|")
-                    .some((role) => userRoles.includes(role));
-            }
-            return false;
-        };
+        onMounted(() => {
+            cookies.value = cookies.get("roles");
+        });
+
         return {
-            userData,
-            is,
             hasAnyRole,
-            createData,
         };
     },
 };

@@ -1,5 +1,5 @@
 <template>
-    <div v-if="is('admin', userData)">
+    <div v-if="is('admin')">
         <h1>Kategori</h1>
         <form @submit.prevent="handleSubmit()" action="/kategori">
             <h3>Tambah Data</h3>
@@ -13,12 +13,8 @@
                     class="form-control"
                     v-model="data.form.nama_kategori"
                 />
-                <div class="error">
-                    {{
-                        error.errors.nama_kategori
-                            ? error.errors.nama_kategori[0]
-                            : ""
-                    }}
+                <div class="error" v-if="data.error.nama_kategori">
+                    {{ data.error.nama_kategori[0] }}
                 </div>
             </div>
 
@@ -32,27 +28,29 @@
 
 <script>
 import axios from "axios";
-import { ref, onMounted, inject } from "vue";
+import { reactive, ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useNotification } from "@kyvg/vue3-notification";
 import Forbidden from "../errors/Forbidden.vue";
+import { useCookies } from "vue3-cookies";
 
 export default {
     components: {
         Forbidden,
     },
     setup() {
-        const data = ref({ form: {} });
-        const error = ref({ errors: {} });
-        const { getUser } = inject("getUser");
+        const data = reactive({ form: {}, error: {} });
         const { notify } = useNotification();
         const router = useRouter();
+        const { cookies } = useCookies();
+        const role = ref([]);
 
         const handleSubmit = () => {
-            console.log(data.value.form);
+            // console.log(data.form.nama_kategori);
             axios
-                .post("/api/kategori", data.value.form)
+                .post("/api/kategori", data.form)
                 .then((response) => {
+                    console.log(response);
                     if (response.data.status) {
                         console.log(response);
 
@@ -66,37 +64,29 @@ export default {
                 })
                 .catch((error) => {
                     if (error.response.status == 422) {
-                        console.log(error.response.data.errors);
-                        error.value.errors = error.response.data.errors;
+                        data.error = error.response.data.errors;
+                        // console.log(error.value.nama_kategori[0]);
                     }
                 });
         };
 
-        const userData = getUser();
-        const is = (role, userData) => {
-            if (userData && userData.data && userData.data.roles) {
-                return userData.data.roles.includes(role);
+        const is = (roles) => {
+            if (role.value === roles) {
+                return true;
+            } else {
+                return false;
             }
-            return false;
         };
 
-        const hasAnyRole = (roles, userData) => {
-            if (userData && userData.roles) {
-                const userRoles = userData.roles;
-                return roles
-                    .split("|")
-                    .some((role) => userRoles.includes(role));
-            }
-            return false;
-        };
+        onMounted(() => {
+            role.value = cookies.get("roles");
+            console.log(role.value);
+        });
 
         return {
             handleSubmit,
             data,
-            error,
-            userData,
             is,
-            hasAnyRole,
         };
     },
 };

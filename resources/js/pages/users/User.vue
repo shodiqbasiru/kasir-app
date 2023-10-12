@@ -1,20 +1,21 @@
 <template>
-    <!-- <div v-if="hasAnyRole('pemilik|admin', userData)"> -->
-    <section>
-        <h1 class="mt-5">Daftar User</h1>
-        <router-link :to="{ name: 'Register' }" class="btn btn-primary">
-            Tambah Pengguna
-        </router-link>
-        <UserComponent />
-    </section>
-    <!-- </div> -->
-    <!-- <forbidden v-else /> -->
+    <div v-if="hasAnyRole('pemilik|admin')">
+        <section>
+            <h1 class="mt-5">Daftar User</h1>
+            <router-link :to="{ name: 'Register' }" class="btn btn-primary">
+                Tambah Pengguna
+            </router-link>
+            <UserComponent />
+        </section>
+    </div>
+    <forbidden v-else />
 </template>
 
 <script>
-import { inject } from "vue";
+import { ref, onMounted } from "vue";
 import Forbidden from "../errors/Forbidden.vue";
 import UserComponent from "../../components/user/UserComponent.vue";
+import { useCookies } from "vue3-cookies";
 
 export default {
     components: {
@@ -22,29 +23,27 @@ export default {
         UserComponent,
     },
     setup() {
-        const { getUser } = inject("getUser");
-        const userData = getUser();
+        const { cookies } = useCookies();
+        const role = ref([]);
 
-        const is = (role, userData) => {
-            if (userData) {
-                return userData.data.roles.includes(role);
+        const hasAnyRole = (roles) => {
+            const rolesSplit = roles.split("|");
+            role.value = cookies.value;
+
+            if (role.value) {
+                return rolesSplit.some((roleSplit) =>
+                    role.value.includes(roleSplit)
+                );
             }
+
             return false;
         };
 
-        const hasAnyRole = (roles, userData) => {
-            if (userData) {
-                const userRoles = userData.data.roles;
-                return roles
-                    .split("|")
-                    .some((role) => userRoles.includes(role));
-            }
-            return false;
-        };
+        onMounted(() => {
+            cookies.value = cookies.get("roles");
+        });
 
         return {
-            userData,
-            is,
             hasAnyRole,
         };
     },

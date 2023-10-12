@@ -1,11 +1,10 @@
 <template>
     <div class="header">
         <h1>{{ title }}</h1>
-        <p>Hello, {{ get.data ? get.data.user.name : "" }}</p>
-        <!-- <p>{{ get.data.roles.name }}</p> -->
+        <p>Hello, {{ name }} ({{ role }})</p>
     </div>
     <div class="wrapper">
-        <aside>
+        <aside v-if="role">
             <ul>
                 <li>
                     <router-link :to="{ name: 'Home' }">
@@ -57,67 +56,58 @@
 </template>
 
 <script>
-import { reactive, onMounted } from "vue";
+import { reactive, ref, onMounted, onBeforeMount } from "vue";
 import { useCookies } from "vue3-cookies";
 import { useRouter } from "vue-router";
 import axios from "axios";
 
 export default {
+    props: ["name"],
     setup() {
         const title = "SB Store";
         const get = reactive({ data: null });
-        // const role = reactive({roles=""});
+        const role = ref([]);
         const { cookies } = useCookies();
         const router = useRouter();
-
-        const getUser = () => {
-            const api_token = cookies.get("api_token");
-            const config = {
-                headers: { Authorization: `Bearer ${api_token}` },
-            };
-
-            axios.get("/api/user", config).then((res) => {
-                console.log(res.data);
-                get.data = res.data;
-            });
-        };
 
         const logout = () => {
             axios.post("/api/logout").then((res) => {
                 console.log(res.data);
                 router.push({ name: "Login" });
-                cookies.remove("api_token");
+                cookies.remove(["api_token"]);
+                cookies.remove(["roles"]);
             });
         };
 
-        const is = (role) => {
-            if (get.data && get.data.roles) {
-                return get.data.roles.includes(role);
+        const is = (roles) => {
+            if (role.value === roles) {
+                return true;
+            } else {
+                return false;
             }
-            return false;
         };
 
         const hasAnyRole = (roles) => {
-            if (get.data && get.data.roles) {
-                const userRoles = get.data.roles;
-                return roles
-                    .split("|")
-                    .some((role) => userRoles.includes(role));
-            }
-            return false;
+            const rolesSplit = roles.split("|");
+            return rolesSplit.includes(role.value);
         };
 
-        onMounted(() => {
-            getUser();
+        // onMounted(() => {
+        //     role.value = cookies.get("roles");
+        //     console.log(role.value); // Tambahkan ini
+        // });
+
+        onBeforeMount(() => {
+            role.value = cookies.get("roles");
         });
 
         return {
-            getUser,
             title,
             get,
             logout,
             is,
             hasAnyRole,
+            role,
         };
     },
 };

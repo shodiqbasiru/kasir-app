@@ -2,3 +2,10 @@
     background-color: aquamarine;
     color: #000;
 }
+
+.error {
+    color: red;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: capitalize;
+}

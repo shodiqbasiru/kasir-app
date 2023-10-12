@@ -1,6 +1,13 @@
 <template>
-    <div v-if="hasAnyRole('admin|pemilik', userData)">
+    <div v-if="hasAnyRole('admin|pemilik')">
         <section>
+            <a
+                href=""
+                class="btn btn-info"
+                @click.prevent="$router.push({ name: 'User' })"
+            >
+                Kembali</a
+            >
             <div class="card">
                 <div class="header text-center mb-5">
                     <h1>{{ title }}</h1>
@@ -88,10 +95,11 @@
 
 <script>
 import axios from "axios";
-import { ref, onMounted, inject } from "vue";
+import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import Forbidden from "../errors/Forbidden.vue";
 import { useNotification } from "@kyvg/vue3-notification";
+import { useCookies } from "vue3-cookies";
 
 export default {
     components: {
@@ -107,11 +115,10 @@ export default {
             selectedRole: "",
         });
         const role = ref({ roles: [] });
-        const { getUser } = inject("getUser");
         const { notify } = useNotification();
-
         const errors = ref({});
         const router = useRouter();
+        const { cookies } = useCookies();
 
         const createUser = () => {
             axios
@@ -142,27 +149,24 @@ export default {
             });
         };
 
-        const userData = getUser();
+        const roleName = ref([]);
 
-        const is = (role, userData) => {
-            if (userData && userData.data.roles) {
-                return userData.data.roles.includes(role);
-            }
-            return false;
-        };
+        const hasAnyRole = (roles) => {
+            const rolesSplit = roles.split("|");
+            roleName.value = cookies.value;
 
-        const hasAnyRole = (roles, userData) => {
-            if (userData && userData.data.roles) {
-                const userRoles = userData.data.roles;
-                return roles
-                    .split("|")
-                    .some((role) => userRoles.includes(role));
+            if (roleName.value) {
+                return rolesSplit.some((roleSplit) =>
+                    roleName.value.includes(roleSplit)
+                );
             }
+
             return false;
         };
 
         onMounted(() => {
             getDataRoles();
+            cookies.value = cookies.get("roles");
         });
 
         return {
@@ -172,8 +176,6 @@ export default {
             createUser,
             getDataRoles,
             role,
-            is,
-            userData,
             hasAnyRole,
         };
     },
@@ -184,7 +186,6 @@ export default {
 .card {
     width: 50%;
     margin: 0 auto;
-    margin-top: 10%;
     padding: 1rem;
 }
 

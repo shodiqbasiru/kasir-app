@@ -23,7 +23,7 @@ import EditKategori from "./pages/category/EditData.vue";
 //report dan kasir
 import Kasir from "./pages/Kasir.vue";
 import Report from "./pages/report/Report.vue";
-import ReportDetail from "./pages/report/ReportDetail.vue";
+import ReportTransaksiDetail from "./pages/report/LaporanTransaksiDetail.vue";
 import ReportUser from "./pages/report/LaporanUser.vue";
 import ReportTransaksi from "./pages/report/LaporanTransaksi.vue";
 import ReportBarang from "./pages/report/LaporanBarang.vue";
@@ -115,8 +115,8 @@ const routes = [
 
             {
                 path: "/transaction/:id?",
-                name: "ReportDetail",
-                component: ReportDetail,
+                name: "ReportTransaksiDetail",
+                component: ReportTransaksiDetail,
                 props: true,
             },
             {
@@ -149,7 +149,7 @@ const routes = [
                 props: true,
             },
             {
-                path: "/register",
+                path: "/user/register",
                 name: "Register",
                 component: Register,
             },

@@ -1,5 +1,5 @@
 <template>
-    <div v-if="is('admin', userData)">
+    <div v-if="is('admin')">
         <section v-if="id">
             <h1 class="mt-5">
                 Kategori {{ data.detailKategori.nama_kategori }}
@@ -59,9 +59,10 @@
 
 <script>
 import axios from "axios";
-import { ref, onMounted, inject } from "vue";
+import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import Forbidden from "../errors/Forbidden.vue";
+import { useCookies } from "vue3-cookies";
 
 export default {
     props: ["id"],
@@ -70,13 +71,14 @@ export default {
     },
     setup(props) {
         const data = ref({ detailKategori: {} });
-        const { getUser } = inject("getUser");
         const router = useRouter();
+        const role = ref([]);
+        const { cookies } = useCookies();
 
         const getKategori = () => {
             axios.get("/api/kategori/" + props.id).then((Response) => {
                 data.value.detailKategori = Response.data.data;
-                console.log(data.value.detailKategori);
+                // console.log(data.value.detailKategori);
             });
         };
 
@@ -84,31 +86,22 @@ export default {
             router.push({ name: "Kategori" });
         };
 
-        const userData = getUser();
-        const is = (role, userData) => {
-            if (userData && userData.data && userData.data.roles) {
-                return userData.data.roles.includes(role);
+        const is = (roles) => {
+            if (role.value === roles) {
+                return true;
+            } else {
+                return false;
             }
-            return false;
-        };
-
-        const hasAnyRole = (roles, userData) => {
-            if (userData && userData.data.roles) {
-                const userRoles = userData.roles;
-                return roles
-                    .split("|")
-                    .some((role) => userRoles.includes(role));
-            }
-
-            return false;
         };
 
         onMounted(() => {
+            role.value = cookies.get("roles");
+            console.log(role.value);
             if (props.id) {
                 getKategori();
             }
         });
-        return { userData, getKategori, backToKategori, data, is, hasAnyRole };
+        return { getKategori, backToKategori, data, is };
     },
 };
 </script>

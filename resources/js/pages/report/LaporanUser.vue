@@ -1,18 +1,22 @@
 <template>
-    <h1>Laporan Data Pengguna</h1>
-    <div>
-        <UserComponent />
+    <div v-if="hasAnyRole('admin|pemilik')">
+        <h1>Laporan Data Pengguna</h1>
+        <div>
+            <UserComponent />
+        </div>
+        <a
+            href=""
+            class="btn btn-primary"
+            @click.prevent="$router.push({ name: 'Report' })"
+            >Kembali</a
+        >
     </div>
-    <a
-        href=""
-        class="btn btn-primary"
-        @click.prevent="$router.push({ name: 'Report' })"
-        >Kembali</a
-    >
+    <Forbidden v-else />
 </template>
 
 <script>
-import { inject } from "vue";
+import { ref, onMounted } from "vue";
+import { useCookies } from "vue3-cookies";
 import Forbidden from "../errors/Forbidden.vue";
 import UserComponent from "../../components/user/UserComponent.vue";
 
@@ -22,29 +26,27 @@ export default {
         UserComponent,
     },
     setup() {
-        const { getUser } = inject("getUser");
-        const userData = getUser();
+        const { cookies } = useCookies();
+        const role = ref([]);
 
-        const is = (role, userData) => {
-            if (userData) {
-                return userData.data.roles.includes(role);
+        const hasAnyRole = (roles) => {
+            const rolesSplit = roles.split("|");
+            role.value = cookies.value;
+
+            if (role.value) {
+                return rolesSplit.some((roleSplit) =>
+                    role.value.includes(roleSplit)
+                );
             }
+
             return false;
         };
 
-        const hasAnyRole = (roles, userData) => {
-            if (userData) {
-                const userRoles = userData.data.roles;
-                return roles
-                    .split("|")
-                    .some((role) => userRoles.includes(role));
-            }
-            return false;
-        };
+        onMounted(() => {
+            cookies.value = cookies.get("roles");
+        });
 
         return {
-            userData,
-            is,
             hasAnyRole,
         };
     },

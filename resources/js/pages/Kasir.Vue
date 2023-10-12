@@ -1,5 +1,5 @@
 <template>
-    <div v-if="is('kasir', userData)">
+    <div v-if="is('kasir')">
         <div class="content">
             <h1 class="title mt-5">SB|Kasir</h1>
             <form action="/kasir">
@@ -112,7 +112,7 @@
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="card">
+                        <div id="print-content" class="card">
                             <div class="card-header text-center">
                                 <h4>SB Store</h4>
                                 <p>
@@ -133,12 +133,16 @@
                                         <tr>
                                             <td>No Transaksi</td>
                                             <td>:</td>
-                                            <td>{{ datas.no_transaksi }}</td>
+                                            <td>
+                                                {{ datas.no_transaksi }}
+                                            </td>
                                         </tr>
                                         <tr>
                                             <td>Kasir</td>
                                             <td>:</td>
-                                            <td>Citra</td>
+                                            <td>
+                                                {{ userData }}
+                                            </td>
                                         </tr>
                                     </table>
                                     <table>
@@ -211,14 +215,19 @@
                                         />
                                     </div>
                                     <div class="actions">
-                                        <a href="" class="btn btn-primary">
+                                        <a
+                                            href=""
+                                            v-if="showPrintButton"
+                                            @click.prevent="download"
+                                            class="btn btn-primary export-hidden"
+                                        >
                                             <font-awesome-icon
                                                 icon="fa-solid fa-print"
                                             />
                                             Print</a
                                         >
                                         <button
-                                            class="btn btn-primary"
+                                            class="btn btn-primary export-hidden"
                                             type="submit"
                                             @click.prevent="getDataToPost()"
                                         >
@@ -231,6 +240,14 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="new-transaction">
+                            <a
+                                href=""
+                                class="btn btn-warning"
+                                @click.prevent="newTransaction"
+                                >New Transaction</a
+                            >
+                        </div>
                     </div>
                 </div>
             </form>
@@ -239,12 +256,19 @@
     <forbidden v-else />
 </template>
 <script>
-import { ref, onMounted, inject } from "vue";
+import { ref, onMounted, reactive } from "vue";
 import axios from "axios";
 import { useNotification } from "@kyvg/vue3-notification";
 import Forbidden from "./errors/Forbidden.vue";
+import { useCookies } from "vue3-cookies";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
+import { useRouter } from "vue-router";
 
 export default {
+    props: {
+        userData: "",
+    },
     components: { Forbidden },
     setup() {
         const products = ref([]);
@@ -272,8 +296,8 @@ export default {
         const selectedProduct = ref(null);
         const dataCart = ref([]);
         const amount = ref("");
-        const { getUser } = inject("getUser");
         const { notify } = useNotification();
+        const showPrintButton = ref(false);
 
         const getDataToPost = () => {
             const transaction_details = dataCart.value.map((item) => {
@@ -284,14 +308,14 @@ export default {
                 };
             });
 
-            console.log(transaction_details);
+            // console.log(transaction_details);
 
             const formattedDate = datas.value.tanggal_transaksi
                 .split("-")
                 .reverse()
                 .join("-");
 
-            if (dataCart.value.length === 0) {
+            if (dataCart.value.length === 0 || form.value.bayar === "") {
                 validation();
             } else {
                 axios
@@ -312,11 +336,12 @@ export default {
                             text: response.data.message,
                             speed: 500,
                         });
-                        resetForm();
+                        // resetForm();
                     })
                     .catch((error) => {
                         console.error(error);
                     });
+                showPrintButton.value = true;
             }
 
             console.log(dataCart.value);
@@ -324,7 +349,7 @@ export default {
 
         const getBarangs = () => {
             axios.get("/api/barang").then((response) => {
-                products.value = response.data;
+                products.value = response.data.data;
                 selectedProduct.value = "";
             });
         };
@@ -394,8 +419,6 @@ export default {
                 sub_total: form.value.sub_total,
             });
 
-            console.log(dataCart.value);
-
             selectedProduct.value = "";
             form.value.nama_barang = "";
             form.value.harga = "";
@@ -454,6 +477,9 @@ export default {
                 kembalian: "",
                 total: 0,
             };
+            datas.value = {
+                no_transaksi: "",
+            };
         };
 
         const validation = () => {
@@ -480,34 +506,56 @@ export default {
             }
         };
 
-        const userData = getUser();
+        const { cookies } = useCookies();
+        const role = ref([]);
 
-        const is = (role, userData) => {
-            if (userData && userData.data.roles) {
-                return userData.data.roles.includes(role);
+        const is = (roles) => {
+            // console.log(role.value);
+            if (role.value === roles) {
+                return true;
+            } else {
+                return false;
             }
-            return false;
         };
 
-        const hasAnyRole = (roles, userData) => {
-            if (userData && userData.data.roles) {
-                const userRoles = userData.data.roles;
-                return roles
-                    .split("|")
-                    .some((role) => userRoles.includes(role));
-            }
-            return false;
+        const download = () => {
+            const elementsToHide = document.querySelectorAll(".export-hidden");
+            elementsToHide.forEach((element) => {
+                element.style.display = "none";
+            });
+
+            const content = document.getElementById("print-content");
+            const pdf = new jsPDF({
+                orientation: "p",
+                unit: "mm",
+                format: "a4",
+            });
+
+            html2canvas(content).then((canvas) => {
+                const imgData = canvas.toDataURL("image/png");
+
+                pdf.addImage(imgData, "PNG", 10, 10, 190, 0); // Adjust the width as needed
+
+                pdf.save("transaction_receipt.pdf");
+            });
+        };
+
+        const router = useRouter();
+        const newTransaction = () => {
+            router.go();
         };
 
         onMounted(() => {
             getBarangs();
             getNow();
             getTime();
+            role.value = cookies.get("roles");
         });
 
         return {
             products,
             datas,
+            newTransaction,
             form,
             time,
             selectedProduct,
@@ -521,14 +569,18 @@ export default {
             getDataToPost,
             validation,
             is,
-            hasAnyRole,
-            userData,
+            showPrintButton,
+            download,
         };
     },
 };
 </script>
 
 <style scoped>
+.new-transaction {
+    display: flex;
+    justify-content: flex-end;
+}
 .content {
     margin-top: 20px;
 }

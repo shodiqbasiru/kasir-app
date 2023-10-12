@@ -58,7 +58,6 @@ createApp(App)
     .use(router)
     .use(Notifications)
     .use(VueCookies)
-    // .use(LaravelPermissionToVueJS)
     .use(RolesPermissionsToVue)
     .component("font-awesome-icon", FontAwesomeIcon)
     .mount("#app");

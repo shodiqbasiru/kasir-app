@@ -4,6 +4,7 @@
             <thead>
                 <tr>
                     <th>No</th>
+                    <th>Kode Barang</th>
                     <th>Nama Barang</th>
                     <th>Harga Barang</th>
                     <th>Stok Barang</th>
@@ -13,6 +14,7 @@
             <tbody>
                 <tr v-for="(item, index) in items" :key="item.id">
                     <td>{{ index + 1 }}</td>
+                    <td>{{ item.kode_barang }}</td>
                     <td>{{ item.nama_barang }}</td>
                     <td>{{ formatRupiah(item.harga_barang) }}</td>
                     <td>{{ item.stok_barang }}</td>
@@ -47,7 +49,7 @@
 </template>
 
 <script>
-import { ref, onMounted, inject } from "vue";
+import { ref, onMounted } from "vue";
 import axios from "axios";
 import { useRouter } from "vue-router";
 import { useNotification } from "@kyvg/vue3-notification";
@@ -55,7 +57,6 @@ import { useNotification } from "@kyvg/vue3-notification";
 export default {
     setup() {
         const items = ref([]);
-        const { getUser } = inject("getUser");
         const router = useRouter();
         const { notify } = useNotification();
 

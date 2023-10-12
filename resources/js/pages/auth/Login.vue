@@ -2,15 +2,32 @@
     <section class="wrapper">
         <div class="card">
             <div class="header text-center mb-5">
-                <h1></h1>
-                <h3>Selamat Datang di Aplikasi Kasir</h3>
+                <h3>Aplikasi Kasir SB Store</h3>
                 <h5>Login</h5>
             </div>
             <form>
+                <!-- <div class="mb-3">
+                    <label for="username" class="form-label">Username</label>
+                    <select
+                        name="username"
+                        id="username"
+                        class="form-control"
+                        v-model="form.username"
+                    >
+                        <option value="">Pilih Role</option>
+                        <option
+                            v-for="role in roles"
+                            :key="role.id"
+                            :value="role.id"
+                        >
+                            {{ role.name }}
+                        </option>
+                    </select>
+                </div> -->
                 <div class="mb-3">
                     <label for="username" class="form-label">Username</label>
                     <input
-                        type="username"
+                        type="text"
                         name="username"
                         class="form-control"
                         id="username"
@@ -47,7 +64,7 @@
 </template>
 
 <script>
-import { reactive } from "vue";
+import { ref, reactive, onMounted } from "vue";
 import { useCookies } from "vue3-cookies";
 import { useRouter } from "vue-router";
 import { useNotification } from "@kyvg/vue3-notification";
@@ -55,29 +72,50 @@ import { useNotification } from "@kyvg/vue3-notification";
 export default {
     setup() {
         const router = useRouter();
-        const form = reactive({ username: "", password: "", error: {} });
+        const form = reactive({
+            username: "",
+            password: "",
+            // role: "",
+            error: {},
+        });
+        // const roles = ref([]);
         const { cookies } = useCookies();
         const { notify } = useNotification();
 
         const login = () => {
+            console.log(form);
             axios
                 .post("/api/login", form)
                 .then((res) => {
                     cookies.set("api_token", res.data.api_token, {
                         expires: "1D",
                     });
-
-                    router.push({ name: "Home" });
+                    router.push({ name: "DefaultLayout" });
                     notify({
                         title: "Success",
                         text: res.data.message,
                         type: "success",
                     });
+                    // cookies.set("roles", res.data.roles);
                 })
                 .catch((error) => {
                     form.error = error.response.data.errors;
                 });
         };
+
+        // const getDataRoles = () => {
+        //     axios.get("/api/roles").then((res) => {
+        //         roles.value = res.data;
+        //         console.log(roles.value);
+        //     });
+        // };
+
+        onMounted(() => {
+            // getDataRoles();
+            if (cookies.get("api_token")) {
+                router.push({ name: "Home" });
+            }
+        });
 
         return { cookies, login, form };
     },

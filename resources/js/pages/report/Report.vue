@@ -1,23 +1,24 @@
 <template>
-    <!-- <div v-if="hasAnyRole('admin|pemilik', userData)"> -->
-    <h1 v-text="title" class="mt-5"></h1>
-    <div class="wrapper">
-        <ReportComponent
-            v-for="item in datas"
-            :key="item.id"
-            :title="item.title"
-            :name="item.name"
-        />
+    <div v-if="hasAnyRole('admin|pemilik')">
+        <h1 v-text="title" class="mt-5"></h1>
+        <div class="wrapper">
+            <ReportComponent
+                v-for="item in datas"
+                :key="item.id"
+                :title="item.title"
+                :name="item.name"
+            />
+        </div>
     </div>
-    <!-- </div> -->
-    <!-- <Forbidden v-else /> -->
+    <Forbidden v-else />
 </template>
 
 <script>
-import { ref } from "vue";
-import axios from "axios";
+import { ref, onMounted } from "vue";
 import Forbidden from "../errors/Forbidden.vue";
 import ReportComponent from "../../components/report/ReportComponent.vue";
+import { useCookies } from "vue3-cookies";
+
 export default {
     components: {
         Forbidden,
@@ -30,28 +31,30 @@ export default {
             { id: 2, title: "Laporan Data Barang", name: "ReportBarang" },
             { id: 3, title: "Laporan Data Pengguna", name: "ReportUser" },
         ]);
+        const { cookies } = useCookies();
+        const role = ref([]);
 
-        // const userData = getUser();
+        const hasAnyRole = (roles) => {
+            const rolesSplit = roles.split("|");
+            role.value = cookies.value;
 
-        // const hasAnyRole = (roles, userData) => {
-        //     if (userData) {
-        //         const userRoles = userData.data.roles;
-        //         return roles
-        //             .split("|")
-        //             .some((role) => userRoles.includes(role));
-        //     }
-        //     return false;
-        // };
+            if (role.value) {
+                return rolesSplit.some((roleSplit) =>
+                    role.value.includes(roleSplit)
+                );
+            }
 
-        // onMounted(() => {
-        //     getUser();
-        // });
+            return false;
+        };
+
+        onMounted(() => {
+            cookies.value = cookies.get("roles");
+        });
 
         return {
             title,
+            hasAnyRole,
             datas,
-            // userData,
-            // hasAnyRole,
         };
     },
 };

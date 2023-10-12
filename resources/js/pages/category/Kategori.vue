@@ -1,5 +1,5 @@
 <template>
-    <div v-if="is('admin', userData)">
+    <div v-if="is('admin')">
         <h1 class="mt-5">Kategori</h1>
         <div class="content">
             <div class="header">
@@ -73,19 +73,20 @@
 import { ref, onMounted } from "vue";
 import axios from "axios";
 import { useRouter } from "vue-router";
-import { inject } from "vue";
 import { useNotification } from "@kyvg/vue3-notification";
 import Forbidden from "../errors/Forbidden.vue";
+import { useCookies } from "vue3-cookies";
 
 export default {
     components: {
         Forbidden,
     },
     setup() {
-        const { getUser } = inject("getUser");
         const categories = ref([]);
         const router = useRouter();
         const { notify } = useNotification();
+        const { cookies } = useCookies();
+        const role = ref([]);
 
         const getCategories = () => {
             axios.get("/api/kategori").then((response) => {
@@ -107,7 +108,7 @@ export default {
         const handlingDelete = (id) => {
             if (confirm("Apakah anda yakin ingin menghapus data ini?")) {
                 axios.delete("/api/kategori/" + id).then((response) => {
-                    console.log(response);
+                    // console.log(response);
                     if (response.data.status) {
                         notify({
                             type: "success",
@@ -127,27 +128,16 @@ export default {
             });
         };
 
-        const userData = getUser();
-        console.log(userData.data.roles);
-
-        const is = (role, userData) => {
-            if (userData && userData.data.roles) {
-                return userData.data.roles.includes(role);
+        const is = (roles) => {
+            if (role.value === roles) {
+                return true;
+            } else {
+                return false;
             }
-            return false;
-        };
-
-        const hasAnyRole = (roles, userData) => {
-            if (userData && userData.roles) {
-                const userRoles = userData.roles;
-                return roles
-                    .split("|")
-                    .some((role) => userRoles.includes(role));
-            }
-            return false;
         };
 
         onMounted(() => {
+            role.value = cookies.get("roles");
             getCategories();
         });
 
@@ -159,8 +149,6 @@ export default {
             handlingDelete,
             editData,
             is,
-            hasAnyRole,
-            userData,
         };
     },
 };

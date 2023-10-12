@@ -83,7 +83,6 @@ class BarangController extends Controller
 
         $barang = Barang::where('id', $id)->update([
             'nama_barang' => $request->nama_barang,
-            'slug' => Str::slug($request->nama_barang, '-'),
             'harga_barang' => $request->harga_barang,
             'stok_barang' => $request->stok_barang,
             'deskripsi_barang' => $request->deskripsi_barang,

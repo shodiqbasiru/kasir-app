@@ -1,5 +1,5 @@
 <template>
-    <div v-if="is('admin', userData)">
+    <div v-if="is('admin')">
         <h1>Kategori</h1>
         <form @submit.prevent="handleUpdate()" action="/kategori">
             <h3>Edit Data</h3>
@@ -11,10 +11,10 @@
                     name="nama_kategori"
                     id="nama_kategori"
                     class="form-control"
-                    v-model="form.nama_kategori"
+                    v-model="data.form.nama_kategori"
                 />
-                <div class="error" v-if="errors.nama_kategori">
-                    {{ errors.nama_kategori[0] }}
+                <div class="error" v-if="data.error.nama_kategori">
+                    {{ data.error.nama_kategori[0] }}
                 </div>
             </div>
 
@@ -27,28 +27,27 @@
 </template>
 
 <script>
-import { reactive, onMounted, inject } from "vue";
+import { ref, reactive, onMounted } from "vue";
 import axios from "axios";
 import { useRouter } from "vue-router";
 import { useNotification } from "@kyvg/vue3-notification";
 import Forbidden from "../errors/Forbidden.vue";
+import { useCookies } from "vue3-cookies";
 export default {
     props: ["id"],
     components: {
         Forbidden,
     },
     setup(props) {
-        const form = reactive({
-            nama_kategori: "",
-        });
-        const errors = reactive({});
-        const { getUser } = inject("getUser");
+        const data = reactive({ form: {}, error: {} });
         const { notify } = useNotification();
         const router = useRouter();
+        const { cookies } = useCookies();
+        const role = ref([]);
+
         const handleUpdate = () => {
-            console.log(form);
             axios
-                .put("/api/kategori/" + props.id, form)
+                .put("/api/kategori/" + props.id, data.form)
                 .then((response) => {
                     if (response.data.status) {
                         console.log(response);
@@ -63,40 +62,33 @@ export default {
                 })
                 .catch((error) => {
                     if (error.response.status == 422) {
-                        errors = error.response.data.errors;
+                        data.error = error.response.data.errors;
                     }
                 });
         };
         const getCategory = () => {
             axios.get("/api/kategori/" + props.id).then((response) => {
-                form.nama_kategori = response.data.data.nama_kategori;
-                console.log(form);
+                data.form = response.data.data;
+                console.log(data.form);
             });
         };
 
-        const userData = getUser();
-
-        const is = (role, userData) => {
-            if (userData && userData.data && userData.data.roles) {
-                return userData.data.roles.includes(role);
+        const is = (roles) => {
+            if (role.value === roles) {
+                return true;
+            } else {
+                return false;
             }
-            return false;
-        };
-
-        const hasAnyRole = (roles, userData) => {
-            if (userData && userData.roles) {
-                const userRoles = userData.roles;
-                return roles
-                    .split("|")
-                    .some((role) => userRoles.includes(role));
-            }
-            return false;
         };
 
         onMounted(() => {
+            role.value = cookies.get("roles");
             getCategory();
+
+            console.log(role.value);
         });
-        return { form, errors, handleUpdate, userData, is, hasAnyRole };
+
+        return { data, handleUpdate, is };
     },
 };
 </script>

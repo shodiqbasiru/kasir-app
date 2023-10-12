@@ -1,10 +1,10 @@
 <template>
     <section class="wrapper">
         <div class="nav-bar">
-            <SideBar />
+            <SideBar v-if="userData" :name="userData?.user?.name" />
         </div>
         <div class="main">
-            <router-view />
+            <router-view :user-data="userData?.user?.name" />
             <Footer />
         </div>
     </section>
@@ -15,14 +15,15 @@ import SideBar from "../components/SideBar.vue";
 import Footer from "../components/Footer.vue";
 import { useCookies } from "vue3-cookies";
 import { useRouter } from "vue-router";
-import { provide, onMounted } from "vue";
+import { onMounted, ref } from "vue";
 
 import axios from "axios";
+import Kasir from "../pages/Kasir.vue";
 export default {
     setup() {
         const { cookies } = useCookies();
         const router = useRouter();
-        const userData = {};
+        const userData = ref({});
 
         const api_token = () => {
             if (!cookies.get("api_token")) {
@@ -38,14 +39,14 @@ export default {
             };
 
             axios.get("/api/user", config).then((response) => {
-                userData.data = response.data;
-                console.log(userData.data);
+                userData.value = response.data;
+                cookies.set("roles", userData.value.roles);
+                // console.log(userData.value);
             });
 
             return userData;
         };
 
-        provide("getUser", { getUser });
         onMounted(() => {
             api_token();
             getUser();
@@ -56,7 +57,9 @@ export default {
     components: {
         SideBar,
         Footer,
+        Kasir,
     },
+    Kasir,
 };
 </script>
 

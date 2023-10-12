@@ -1,5 +1,5 @@
 <template>
-    <div v-if="is('admin', userData)">
+    <div v-if="is('admin')">
         <h1>Tambah Data</h1>
         <form @submit.prevent="handleSubmit()" action="/barang">
             <div class="form-group">
@@ -9,10 +9,10 @@
                     name="id_barang"
                     id="id_barang"
                     class="form-control"
-                    v-model="form.kode_barang"
+                    v-model="data.form.kode_barang"
                 />
-                <div class="error" v-if="error.kode_barang">
-                    {{ error.kode_barang[0] }}
+                <div class="error" v-if="data.errors.kode_barang">
+                    {{ data.errors.kode_barang[0] }}
                 </div>
             </div>
             <div class="form-group">
@@ -22,10 +22,10 @@
                     name="nama_barang"
                     id="nama_barang"
                     class="form-control"
-                    v-model="form.nama_barang"
+                    v-model="data.form.nama_barang"
                 />
-                <div class="error" v-if="error.nama_barang">
-                    {{ error.nama_barang[0] }}
+                <div class="error" v-if="data.errors.nama_barang">
+                    {{ data.errors.nama_barang[0] }}
                 </div>
             </div>
             <div class="form-group">
@@ -35,10 +35,10 @@
                     name="harga_barang"
                     id="harga_barang"
                     class="form-control"
-                    v-model="form.harga_barang"
+                    v-model="data.form.harga_barang"
                 />
-                <div class="error" v-if="error.harga_barang">
-                    {{ error.harga_barang[0] }}
+                <div class="error" v-if="data.errors.harga_barang">
+                    {{ data.errors.harga_barang[0] }}
                 </div>
             </div>
             <div class="form-group">
@@ -48,10 +48,10 @@
                     name="stok_barang"
                     id="stok_barang"
                     class="form-control"
-                    v-model="form.stok_barang"
+                    v-model="data.form.stok_barang"
                 />
-                <div class="error" v-if="error.stok_barang">
-                    {{ error.stok_barang[0] }}
+                <div class="error" v-if="data.errors.stok_barang">
+                    {{ data.errors.stok_barang[0] }}
                 </div>
             </div>
 
@@ -62,7 +62,7 @@
                     name="category_id"
                     id="category_id"
                     class="form-control"
-                    v-model="form.category_id"
+                    v-model="data.form.category_id"
                 >
                     <option value="">-- Pilih Kategori --</option>
                     <option
@@ -73,8 +73,8 @@
                         {{ category.nama_kategori }}
                     </option>
                 </select>
-                <div class="error" v-if="error.nama_kategori">
-                    {{ error.nama_kategori[0] }}
+                <div class="error" v-if="data.errors.nama_kategori">
+                    {{ data.errors.nama_kategori[0] }}
                 </div>
             </div>
             <!-- end  -->
@@ -87,10 +87,10 @@
                     cols="30"
                     rows="10"
                     class="form-control"
-                    v-model="form.deskripsi_barang"
+                    v-model="data.form.deskripsi_barang"
                 ></textarea>
-                <div class="error" v-if="error.deskripsi_barang">
-                    {{ error.deskripsi_barang[0] }}
+                <div class="error" v-if="data.errors.deskripsi_barang">
+                    {{ data.errors.deskripsi_barang[0] }}
                 </div>
             </div>
             <button type="submit" class="btn btn-primary">Tambah</button>
@@ -103,9 +103,10 @@
 
 <script>
 import axios from "axios";
-import { ref, onMounted, inject } from "vue";
+import { ref, reactive, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useNotification } from "@kyvg/vue3-notification";
+import { useCookies } from "vue3-cookies";
 import Forbidden from "../errors/Forbidden.vue";
 export default {
     components: {
@@ -114,69 +115,66 @@ export default {
     setup() {
         const { notify } = useNotification();
         const router = useRouter();
-        const { getUser } = inject("getUser");
-        const form = ref({
-            kode_barang: "",
-            nama_barang: "",
-            harga_barang: "",
-            stok_barang: "",
-            category_id: "",
-            deskripsi_barang: "",
+        const { cookies } = useCookies();
+        const role = ref([]);
+        const data = reactive({
+            form: {
+                kode_barang: "",
+                nama_barang: "",
+                harga_barang: "",
+                stok_barang: "",
+                category_id: "",
+                deskripsi_barang: "",
+            },
+            errors: {},
         });
         const categories = ref([]);
-        const error = ref({ errors: {} });
 
         const getCategories = () => {
             axios.get("/api/kategori").then((response) => {
                 categories.value = response.data.data;
-                console.log(categories.value);
+                // console.log(categories.value);
             });
         };
         const handleSubmit = () => {
-            console.log(form.value);
-            axios.post("/api/barang", form.value).then((response) => {
-                if (response.data.status) {
-                    console.log(response);
+            console.log(data.form);
+            axios
+                .post("/api/barang", data.form)
+                .then((response) => {
+                    if (response.data.status) {
+                        // console.log(response);
 
-                    notify({
-                        type: "success",
-                        text: response.data.message,
-                        speed: 500,
-                    });
-                    router.push({ name: "Barang" });
-                }
-            });
+                        notify({
+                            type: "success",
+                            text: response.data.message,
+                            speed: 500,
+                        });
+                        router.push({ name: "Barang" });
+                    }
+                })
+                .catch((error) => {
+                    data.errors = error.response.data.errors;
+                });
         };
 
-        const userData = getUser();
-        const is = (role, userData) => {
-            if (userData && userData.data && userData.data.roles) {
-                return userData.data.roles.includes(role);
+        const is = (roles) => {
+            if (role.value === roles) {
+                return true;
+            } else {
+                return false;
             }
-            return false;
-        };
-
-        const hasAnyRole = (roles, userData) => {
-            if (userData && userData.roles) {
-                const userRoles = userData.roles;
-                return roles
-                    .split("|")
-                    .some((role) => userRoles.includes(role));
-            }
-            return false;
         };
 
         onMounted(() => {
+            role.value = cookies.get("roles");
             getCategories();
         });
+
         return {
-            form,
+            data,
             categories,
-            error,
             handleSubmit,
-            userData,
             is,
-            hasAnyRole,
         };
     },
 };
