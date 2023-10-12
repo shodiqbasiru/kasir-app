@@ -40,7 +40,7 @@ export default {
 
             axios.get("/api/user", config).then((response) => {
                 userData.value = response.data;
-                cookies.set("roles", userData.value.roles);
+                // cookies.set("roles", userData.value.roles);
                 // console.log(userData.value);
             });
 

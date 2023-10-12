@@ -83,20 +83,19 @@ export default {
         const { notify } = useNotification();
 
         const login = () => {
-            console.log(form);
             axios
                 .post("/api/login", form)
                 .then((res) => {
                     cookies.set("api_token", res.data.api_token, {
                         expires: "1D",
                     });
+                    cookies.set("roles", res.data.roles);
                     router.push({ name: "DefaultLayout" });
                     notify({
                         title: "Success",
                         text: res.data.message,
                         type: "success",
                     });
-                    // cookies.set("roles", res.data.roles);
                 })
                 .catch((error) => {
                     form.error = error.response.data.errors;
